@@ -68,7 +68,7 @@ COPY scripts/cache.py .
 
 # Build cache for each model
 RUN for file in models/Stable-diffusion/*.safetensors; do 
-        python cache.py --use-cpu=all --ckpt "$file"; \
+        python3 cache.py --use-cpu=all --ckpt "$file"; \
     done
 
 RUN pip3 install huggingface_hub runpod

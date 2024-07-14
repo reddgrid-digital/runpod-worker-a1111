@@ -44,6 +44,7 @@ RUN ln -s /usr/bin/python3.10 /usr/bin/python
 RUN pip install requests runpod huggingface_hub
 
 # Clone A1111 repo to /workspace
+RUN mkdir /workspace
 RUN cd /workspace
 RUN git clone --depth=1 https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
 

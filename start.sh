@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
-echo "Worker Initiated"
+echo "Worker Initiated, moving Models"
+
+mv /models/Checkpoints/* /workspace/stable-diffusion-webui/models/Stable-diffusion/
+mv /models/Lora/* /workspace/stable-diffusion-webui/models/Stable-diffusion/Lora/
+mv /models/VAE/* /workspace/stable-diffusion-webui/models/Stable-diffusion/VAE/
 
 if [ -f "/workspace/venv/bin/activate" ]; then
     echo "Starting WebUI API"

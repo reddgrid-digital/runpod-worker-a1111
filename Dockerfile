@@ -44,39 +44,30 @@ RUN ln -s /usr/bin/python3.10 /usr/bin/python
 RUN pip install requests runpod huggingface_hub
 
 # Clone A1111 repo to /workspace
-RUN mkdir /workspace
-RUN cd /workspace
+WORKDIR /workspace
 RUN git clone --depth=1 https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
 
-# "Creating and activating venv"
-RUN cd stable-diffusion-webui
+# Creating and activating venv
+WORKDIR /workspace/stable-diffusion-webui
+
+# Install A1111 dependencies
 RUN python3 -m venv /workspace/venv
 RUN source /workspace/venv/bin/activate
-
-# "Installing Torch"
-RUN pip3 install --no-cache-dir torch==2.1.2+cu118 torchvision torchaudio --index-url
-RUN https://download.pytorch.org/whl/cu118
-
-# "Installing xformers"
+RUN pip3 install --no-cache-dir torch==2.1.2+cu118 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 RUN pip3 install --no-cache-dir xformers==0.0.23.post1 --index-url https://download.pytorch.org/whl/cu118
 
-# "Installing A1111 Web UI"
-RUN wget https://raw.githubusercontent.com/reddgrid-digital/runpod-worker-a1111/main/install-automatic.py
+COPY install-automatic.py .
 RUN python3 -m install-automatic --skip-torch-cuda-test
+COPY webui-user.sh .
+COPY config.json .
+COPY ui-config.json .
+COPY models/Checkpoints/. models/Stable-diffusion/
+COPY models/Lora/. models/Lora/
+COPY models/VAE/. models/VAE/
 
-# "Installing RunPod Serverless dependencies"
-RUN cd /workspace/stable-diffusion-webui
 RUN pip3 install huggingface_hub runpod
 
-# "Creating log directory"
-RUN mkdir -p /workspace/logs
-
-# "Installing config files"
-RUN cd /workspace/stable-diffusion-webui
-RUN rm webui-user.sh config.json ui-config.json
-RUN wget https://raw.githubusercontent.com/reddgrid-digital/runpod-worker-a1111/main/webui-user.sh
-RUN wget https://raw.githubusercontent.com/reddgrid-digital/runpod-worker-a1111/main/config.json
-RUN wget https://raw.githubusercontent.com/reddgrid-digital/runpod-worker-a1111/main/ui-config.json
+WORKDIR /
 
 # Add RunPod Handler and Docker container start script
 COPY start.sh rp_handler.py ./

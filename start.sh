@@ -2,10 +2,6 @@
 
 echo "Worker Initiated"
 
-echo "Symlinking files from Network Volume"
-rm -rf /workspace && \
-  ln -s /runpod-volume /workspace
-
 if [ -f "/workspace/venv/bin/activate" ]; then
     echo "Starting WebUI API"
     source /workspace/venv/bin/activate
@@ -33,8 +29,7 @@ else
     echo "ERROR: The Python Virtual Environment (/workspace/venv/bin/activate) could not be activated"
     echo "1. Ensure that you have followed the instructions at: https://github.com/ashleykleynhans/runpod-worker-a1111/blob/main/docs/installing.md"
     echo "2. Ensure that you have used the Pytorch image for the installation and NOT a Stable Diffusion image."
-    echo "3. Ensure that you have attached your Network Volume to your endpoint."
-    echo "4. Ensure that you didn't assign any other invalid regions to your endpoint."
+    echo "3. Ensure that you didn't assign any other invalid regions to your endpoint."
 fi
 
 echo "Starting RunPod Handler"

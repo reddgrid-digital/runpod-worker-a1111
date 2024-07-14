@@ -259,28 +259,5 @@
     "canvas_blur_prompt": false,
     "canvas_disabled_functions": [
         "Overlap"
-    ],
-    "ad_max_models": 2,
-    "ad_extra_models_dir": "",
-    "ad_save_previews": false,
-    "ad_save_images_before": false,
-    "ad_only_seleted_scripts": true,
-    "ad_script_names": "dynamic_prompting,dynamic_thresholding,wildcard_recursive,wildcards,lora_block_weight,negpip",
-    "ad_bbox_sortby": "None",
-    "ad_same_seed_for_each_tap": false,
-    "control_net_detectedmap_dir": "detected_maps",
-    "control_net_models_path": "",
-    "control_net_modules_path": "",
-    "control_net_unit_count": 3,
-    "control_net_model_cache_size": 1,
-    "control_net_inpaint_blur_sigma": 7,
-    "control_net_no_high_res_fix": false,
-    "control_net_no_detectmap": false,
-    "control_net_detectmap_autosaving": false,
-    "control_net_allow_script_control": false,
-    "control_net_sync_field_args": true,
-    "controlnet_show_batch_images_in_ui": false,
-    "controlnet_increment_seed_during_batch": false,
-    "controlnet_disable_openpose_edit": false,
-    "controlnet_ignore_noninpaint_mask": false
+    ]
 }

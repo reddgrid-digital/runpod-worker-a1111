@@ -67,7 +67,7 @@ COPY models/VAE/. models/VAE/
 COPY scripts/cache.py .
 
 # Build cache for each model
-RUN for file in models/Stable-diffusion/*.safetensors; do 
+RUN for file in models/Stable-diffusion/*.safetensors; do \
         python3 cache.py --use-cpu=all --ckpt "$file"; \
     done
 

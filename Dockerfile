@@ -1,8 +1,9 @@
-FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
+FROM nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu20.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=on \
+    PIP_ROOT_USER_ACTION=ignore \
     SHELL=/bin/bash
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -13,14 +14,16 @@ WORKDIR /
 RUN apt update && \
     apt upgrade -y && \
     apt install -y \
+      git \
+      software-properties-common \
+      build-essential \
+      vim \
       python3-dev \
       python3-pip \
       fonts-dejavu-core \
       rsync \
-      git \
       jq \
       moreutils \
-      aria2 \
       wget \
       curl \
       libglib2.0-0 \
@@ -37,15 +40,73 @@ RUN apt update && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean -y
 
-# Set Python
-RUN ln -s /usr/bin/python3.10 /usr/bin/python
+# Install miniconda
+ENV CONDA_DIR=/opt/conda
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+    /bin/bash ~/miniconda.sh -b -p /opt/conda
+
+# Put conda in path so we can use conda activate
+ENV PATH=$CONDA_DIR/bin:$PATH
+
+# Clone A1111 repo to /workspace
+WORKDIR /workspace
+RUN git clone --depth=1 https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
+
+# Set stable-diffusion-webui dir
+WORKDIR /workspace/stable-diffusion-webui
+
+# Create virtual environment
+RUN conda create -n sd python=3.10.6 -y
+
+# Make RUN commands use the new environment:
+RUN conda init bash
+SHELL ["conda", "run", "-n", "sd", "/bin/bash", "-c"]
+RUN python --version
+
+# Install A1111 dependencies
+COPY install-automatic.py .
+RUN python -m install-automatic --skip-torch-cuda-test
+
+# Somewhat redundant installation, installs more recent version on torch, xformers and torchvision
+RUN python -m pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --no-cache-dir xformers==0.0.25
+RUN python -m pip install --no-cache-dir torch==2.2.1 torchvision==0.17.1
+
+COPY webui-user.sh .
+COPY config.json .
+COPY ui-config.json .
+COPY models/Checkpoints/. models/Stable-diffusion/
+COPY models/Lora/. models/Lora/
+COPY models/VAE/. models/VAE/
+
+WORKDIR /
 
 # Install Worker dependencies
-RUN pip install requests runpod huggingface_hub
+RUN python -m pip install requests runpod huggingface_hub
+
+# Test run and create cache
+ENV PYTHONUNBUFFERED=true \
+    HF_HOME="/workspace"
+
+# Run A1111 once to load weights and populate caches, exit after X time
+RUN timeout 180 python /workspace/stable-diffusion-webui/webui.py \
+  --use-cpu=all \
+  --no-half \
+  --skip-python-version-check \
+  --skip-torch-cuda-test \
+  --lowram \
+  --disable-safe-unpickle \
+  --port 3000 \
+  --api \
+  --nowebui \
+  --skip-version-check \
+  --no-download-sd-model || true
 
 # Add RunPod Handler and Docker container start script
 COPY start.sh rp_handler.py ./
 COPY schemas /schemas
+
+RUN du -sh
 
 # Start the container
 RUN chmod +x /start.sh

@@ -6,10 +6,9 @@ This is the source code for a [RunPod](https://runpod.io?ref=2xxro4sy)
 Serverless worker that uses the [Automatic1111 Stable Diffusion API](
 https://github.com/AUTOMATIC1111/stable-diffusion-webui) for inference.
 
-![Docker Pulls](https://img.shields.io/docker/pulls/ashleykza/runpod-worker-a1111?style=for-the-badge&logo=docker&label=Docker%20Pulls&link=https%3A%2F%2Fhub.docker.com%2Frepository%2Fdocker%2Fashleykza%2Frunpod-worker-a1111%2Fgeneral)
-![Worker Version](https://img.shields.io/github/v/tag/ashleykleynhans/runpod-worker-a1111?style=for-the-badge&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDI2LjUuMywgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHZpZXdCb3g9IjAgMCAyMDAwIDIwMDAiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDIwMDAgMjAwMDsiIHhtbDpzcGFjZT0icHJlc2VydmUiPgo8c3R5bGUgdHlwZT0idGV4dC9jc3MiPgoJLnN0MHtmaWxsOiM2NzNBQjc7fQo8L3N0eWxlPgo8Zz4KCTxnPgoJCTxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik0xMDE3Ljk1LDcxMS4wNGMtNC4yMiwyLjM2LTkuMTgsMy4wMS0xMy44NiwxLjgyTDM4Ni4xNyw1NTUuM2MtNDEuNzItMTAuNzYtODYuMDItMC42My0xMTYuNiwyOS43MwoJCQlsLTEuNCwxLjM5Yy0zNS45MiwzNS42NS0yNy41NSw5NS44LDE2Ljc0LDEyMC4zbDU4NC4zMiwzMjQuMjNjMzEuMzYsMTcuNCw1MC44Miw1MC40NSw1MC44Miw4Ni4zMnY4MDYuNzYKCQkJYzAsMzUuNDktMzguNDEsNTcuNjctNjkuMTUsMzkuOTRsLTcwMy4xNS00MDUuNjRjLTIzLjYtMTMuNjEtMzguMTMtMzguNzgtMzguMTMtNjYuMDJWNjY2LjYzYzAtODcuMjQsNDYuNDUtMTY3Ljg5LDEyMS45Mi0yMTEuNjYKCQkJTDkzMy44NSw0Mi4xNWMyMy40OC0xMy44LDUxLjQ3LTE3LjcsNzcuODMtMTAuODRsNzQ1LjcxLDE5NC4xYzMxLjUzLDguMjEsMzYuOTksNTAuNjUsOC41Niw2Ni41N0wxMDE3Ljk1LDcxMS4wNHoiLz4KCQk8cGF0aCBjbGFzcz0ic3QwIiBkPSJNMTUyNy43NSw1MzYuMzhsMTI4Ljg5LTc5LjYzbDE4OS45MiwxMDkuMTdjMjcuMjQsMTUuNjYsNDMuOTcsNDQuNzMsNDMuODIsNzYuMTVsLTQsODU3LjYKCQkJYy0wLjExLDI0LjM5LTEzLjE1LDQ2Ljg5LTM0LjI1LDU5LjExbC03MDEuNzUsNDA2LjYxYy0zMi4zLDE4LjcxLTcyLjc0LTQuNTktNzIuNzQtNDEuOTJ2LTc5Ny40MwoJCQljMC0zOC45OCwyMS4wNi03NC45MSw1NS4wNy05My45Nmw1OTAuMTctMzMwLjUzYzE4LjIzLTEwLjIxLDE4LjY1LTM2LjMsMC43NS00Ny4wOUwxNTI3Ljc1LDUzNi4zOHoiLz4KCQk8cGF0aCBjbGFzcz0ic3QwIiBkPSJNMTUyNC4wMSw2NjUuOTEiLz4KCTwvZz4KPC9nPgo8L3N2Zz4K&logoColor=%23ffffff&label=Worker%20Version&color=%23673ab7)
+> NOTE: This is a fork of Ashley Kleynhans' runpod-worker repo. It has been modified to NOT use network storage and instead bundles everything within a single Docker image. This means you need to be more selective of what you include (models, LoRAs etc.). Personally, I try to keep only a single model, and a few LoRAs. You can build different images/endpoints for different models.
 
-</div>
+
 
 > [!IMPORTANT]
 > A1111 1.9.0 API format has changed dramatically and is not
@@ -18,18 +17,14 @@ https://github.com/AUTOMATIC1111/stable-diffusion-webui) for inference.
 > compatibility, and also ensure that you are using A1111 1.8.0
 > and not version 1.9.0.
 
-## Model
+## Checkpoints/LoRAs/VAE
 
-The model(s) for inference will be loaded from a RunPod
-Network Volume.
+Place checkpoints, LoRA and VAE in the models dir before building.
+
 
 ## Extensions
 
-This worker includes the following A1111 extensions:
-
-1. [ControlNet](https://github.com/Mikubill/sd-webui-controlnet)
-2. [ReActor](https://github.com/Gourieff/sd-webui-reactor)
-3. [ADetailer](https://github.com/Bing-su/adetailer)
+None. File a feature request to if you'd like to see things like ControlNet, ADetailer etc.
 
 ## Testing
 
@@ -38,11 +33,8 @@ This worker includes the following A1111 extensions:
 
 ## Installing, Building and Deploying the Serverless Worker
 
-1. [Install Automatic1111 Web UI on your Network Volume](
-docs/installing.md)
-2. [Building the Docker image](docs/building.md)
-3. [Deploying on RunPod Serveless](docs/deploying.md)
-4. [Frequently Asked Questions](docs/faq.md)
+1. [Building the Docker image](docs/building.md)
+2. [Deploying on RunPod Serveless](docs/deploying.md)
 
 ## RunPod API Endpoint
 

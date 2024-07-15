@@ -1,20 +1,17 @@
 ## Building the Docker image
 
-You can either build this Docker image yourself, your alternatively,
-you can use my pre-built image:
-
-```
-ashleykza/runpod-worker-a1111:3.0.0
-```
-
-If you choose to build it yourself:
+You must build this Docker image yourself:
 
 1. Sign up for a Docker hub account if you don't already have one.
 2. Build the Docker image on your local machine and push to Docker hub:
 ```bash
 # Clone the repo
-git clone https://github.com/ashleykleynhans/runpod-worker-a1111.git
+git clone https://github.com/reddgrid-digital/runpod-worker-a1111.git
 cd runpod-worker-a1111
+
+# Add models to models dir.
+
+# Edit config.json to load default model on startup
 
 # Build and push
 docker build -t dockerhub-username/runpod-worker-a1111:1.0.0 .

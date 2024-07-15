@@ -16,7 +16,6 @@ RUN apt update && \
     apt install -y \
       git \
       software-properties-common \
-      curl \
       build-essential \
       vim \
       python3-dev \
@@ -62,16 +61,16 @@ RUN conda create -n sd python=3.10.6 -y
 # Make RUN commands use the new environment:
 RUN conda init bash
 SHELL ["conda", "run", "-n", "sd", "/bin/bash", "-c"]
-
 RUN python --version
 
-# Install Worker dependencies
-RUN python -m pip install requests runpod huggingface_hub
-
 # Install A1111 dependencies
+COPY install-automatic.py .
+RUN python -m install-automatic --skip-torch-cuda-test
+
+# Somewhat redundant installation, installs more recent version on torch, xformers and torchvision
 RUN python -m pip install --no-cache-dir -r requirements.txt
 RUN python -m pip install --no-cache-dir xformers==0.0.25
-RUN python -m pip install --no-cache-dir torch==2.2.2 torchvision==0.17.2
+RUN python -m pip install --no-cache-dir torch==2.2.1 torchvision==0.17.1
 
 COPY webui-user.sh .
 COPY config.json .
@@ -82,28 +81,32 @@ COPY models/VAE/. models/VAE/
 
 WORKDIR /
 
+# Install Worker dependencies
+RUN python -m pip install requests runpod huggingface_hub
+
 # Test run and create cache
 ENV PYTHONUNBUFFERED=true \
     HF_HOME="/workspace"
 
-RUN timeout 3000 python /workspace/stable-diffusion-webui/webui.py \
+# Run A1111 once to load weights and populate caches, exit after X time
+RUN timeout 180 python /workspace/stable-diffusion-webui/webui.py \
   --use-cpu=all \
   --no-half \
   --skip-python-version-check \
   --skip-torch-cuda-test \
   --lowram \
-  --opt-sdp-attention \
   --disable-safe-unpickle \
   --port 3000 \
   --api \
   --nowebui \
   --skip-version-check \
-  --no-hashing \
-  --no-download-sd-model
+  --no-download-sd-model || true
 
 # Add RunPod Handler and Docker container start script
 COPY start.sh rp_handler.py ./
 COPY schemas /schemas
+
+RUN du -sh
 
 # Start the container
 RUN chmod +x /start.sh
